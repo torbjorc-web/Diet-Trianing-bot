@@ -11,3 +11,5 @@ services:
         value: /opt/render/project/src/data/chatbot.db
       - key: PORTAL_INVITE_CODE
         value: ""
+      - key: ADMIN_VIEW_CODE
+        value: ""
