@@ -406,7 +406,16 @@ def _get_portal_share_urls(request: Request) -> list[str]:
 
 
 def _is_public_path(path: str) -> bool:
-    return path in {"/health", "/docs", "/openapi.json", "/redoc", "/favicon.ico"}
+    return path in {
+        "/",
+        "/portal",
+        "/portal/share-links",
+        "/health",
+        "/docs",
+        "/openapi.json",
+        "/redoc",
+        "/favicon.ico",
+    }
 
 
 def _extract_invite_code(request: Request) -> str:
