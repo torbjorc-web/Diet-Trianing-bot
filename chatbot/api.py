@@ -1,11 +1,14 @@
 import logging
 import os
 import socket
+import csv
+import io
+from datetime import datetime, timedelta
 from dataclasses import asdict
 from typing import List, Literal
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from chatbot.engine import ConcurrentChatbot, MockAIProvider
@@ -165,8 +168,16 @@ PORTAL_HTML = """<!doctype html>
         <div class=\"card\">
             <h1>Diet-Training Bot Portal</h1>
             <p>Use this page instead of Swagger. First fill onboarding, then chat.</p>
+            <label>Date Window</label>
+            <select id="admin_window">
+                <option value="today">today</option>
+                <option value="7d" selected>7d</option>
+                <option value="30d">30d</option>
+                <option value="all">all</option>
+            </select>
             <label>Invite Code (if enabled)</label>
             <input id=\"invite_code\" placeholder=\"Optional invite code\" />
+            <button class="secondary" onclick="exportAdminCsv()">Export CSV</button>
             <label>Admin View Code (owner only)</label>
             <input id=\"admin_code\" placeholder=\"Optional admin code\" />
         </div>
@@ -260,6 +271,10 @@ PORTAL_HTML = """<!doctype html>
 
         function adminCode() {
             return (v("admin_code") || "").trim();
+        }
+
+        function adminWindow() {
+            return (v("admin_window") || "7d").trim();
         }
 
         function withInvite(path) {
@@ -384,12 +399,38 @@ PORTAL_HTML = """<!doctype html>
 
         async function loadAdminInputs() {
             const code = adminCode();
+            const window = encodeURIComponent(adminWindow());
             const path = code
-                ? `/admin/chat-inputs?limit=200&admin=${encodeURIComponent(code)}`
-                : "/admin/chat-inputs?limit=200";
+                ? `/admin/chat-inputs?limit=200&window=${window}&admin=${encodeURIComponent(code)}`
+                : `/admin/chat-inputs?limit=200&window=${window}`;
             const res = await fetch(withInvite(path), { headers: adminHeaders() });
             const data = await res.json();
             show("admin_result", data);
+        }
+
+        async function exportAdminCsv() {
+            const code = adminCode();
+            const window = encodeURIComponent(adminWindow());
+            const path = code
+                ? `/admin/chat-inputs.csv?limit=1000&window=${window}&admin=${encodeURIComponent(code)}`
+                : `/admin/chat-inputs.csv?limit=1000&window=${window}`;
+            const res = await fetch(withInvite(path), { headers: adminHeaders() });
+            if (!res.ok) {
+                const data = await res.json();
+                show("admin_result", data);
+                return;
+            }
+            const text = await res.text();
+            const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `chat-inputs-${adminWindow()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            show("admin_result", "CSV export completed.");
         }
 
         loadInviteFromUrl();
@@ -503,6 +544,33 @@ def _assert_admin(request: Request) -> None:
         raise HTTPException(status_code=401, detail="Unauthorized admin access")
 
 
+def _filter_records_by_window(records: list[dict], window: str) -> list[dict]:
+    normalized = (window or "7d").strip().lower()
+    if normalized == "all":
+        return records
+
+    now = datetime.utcnow()
+    if normalized == "today":
+        cutoff = datetime(now.year, now.month, now.day)
+    elif normalized == "30d":
+        cutoff = now - timedelta(days=30)
+    else:
+        cutoff = now - timedelta(days=7)
+
+    filtered: list[dict] = []
+    for record in records:
+        created_at = str(record.get("created_at", "")).strip()
+        if not created_at:
+            continue
+        try:
+            timestamp = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            continue
+        if timestamp >= cutoff:
+            filtered.append(record)
+    return filtered
+
+
 @app.middleware("http")
 async def invite_code_middleware(request: Request, call_next):
     if not INVITE_CODE:
@@ -566,13 +634,51 @@ def admin_users(request: Request) -> dict:
 
 
 @app.get("/admin/chat-inputs")
-def admin_chat_inputs(request: Request, limit: int = 200) -> dict:
+def admin_chat_inputs(
+    request: Request,
+    limit: int = 200,
+    window: Literal["today", "7d", "30d", "all"] = "7d",
+) -> dict:
     _assert_admin(request)
     records = history_store.list_recent_records(limit=limit)
+    records = _filter_records_by_window(records, window)
     return {
+        "window": window,
         "count": len(records),
         "records": records,
     }
+
+
+@app.get("/admin/chat-inputs.csv", response_class=PlainTextResponse)
+def admin_chat_inputs_csv(
+    request: Request,
+    limit: int = 1000,
+    window: Literal["today", "7d", "30d", "all"] = "7d",
+) -> PlainTextResponse:
+    _assert_admin(request)
+    records = history_store.list_recent_records(limit=limit)
+    records = _filter_records_by_window(records, window)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["created_at", "user_id", "success", "prompt", "response"])
+    for row in records:
+        writer.writerow(
+            [
+                row.get("created_at", ""),
+                row.get("user_id", ""),
+                row.get("success", ""),
+                row.get("prompt", ""),
+                row.get("response", ""),
+            ]
+        )
+
+    headers = {"Content-Disposition": f"attachment; filename=chat-inputs-{window}.csv"}
+    return PlainTextResponse(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers=headers,
+    )
 
 
 @app.get("/onboarding/questions")
