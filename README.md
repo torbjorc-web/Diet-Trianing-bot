@@ -41,6 +41,12 @@ FastAPI server:
 uvicorn chatbot.api:app --reload
 ```
 
+Customer portal (no Swagger needed):
+
+Open `http://127.0.0.1:8000/` or `http://127.0.0.1:8000/portal`.
+The user can fill onboarding fields and chat directly from the web page.
+The portal also includes a Share Links panel with one-click copy.
+
 Then call:
 
 ```bash
@@ -60,6 +66,9 @@ curl -X POST "http://127.0.0.1:8000/chat" \
 ## API Endpoints
 
 - `GET /health`: health check
+- `GET /`: simple customer portal UI
+- `GET /portal`: simple customer portal UI
+- `GET /portal/share-links`: suggest local and LAN shareable portal URLs
 - `GET /onboarding/questions`: list onboarding start questions
 - `POST /onboarding/submit`: save user onboarding profile
 - `GET /onboarding/{user_id}`: read saved onboarding profile
