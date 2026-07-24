@@ -1,4 +1,6 @@
 from dataclasses import asdict, dataclass
+from pathlib import Path
+import sqlite3
 from threading import Lock
 from typing import Dict
 
@@ -85,6 +87,96 @@ class InMemoryOnboardingStore:
             existed = user_id in self._store
             self._store.pop(user_id, None)
             return existed
+
+
+class SqliteOnboardingStore:
+    """Thread-safe SQLite-backed onboarding profile storage."""
+
+    def __init__(self, db_path: str) -> None:
+        self._lock = Lock()
+        path = Path(db_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self._conn = sqlite3.connect(path, check_same_thread=False)
+        self._conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS onboarding_profiles (
+                user_id TEXT PRIMARY KEY,
+                full_name TEXT NOT NULL,
+                goal TEXT NOT NULL,
+                training_level TEXT NOT NULL,
+                meal_preference TEXT NOT NULL,
+                weight_kg REAL,
+                health_notes TEXT NOT NULL,
+                training_setting TEXT NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+            """
+        )
+        self._conn.commit()
+
+    def upsert(self, profile: UserOnboardingProfile) -> None:
+        with self._lock:
+            self._conn.execute(
+                """
+                INSERT INTO onboarding_profiles (
+                    user_id, full_name, goal, training_level,
+                    meal_preference, weight_kg, health_notes, training_setting, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                ON CONFLICT(user_id) DO UPDATE SET
+                    full_name = excluded.full_name,
+                    goal = excluded.goal,
+                    training_level = excluded.training_level,
+                    meal_preference = excluded.meal_preference,
+                    weight_kg = excluded.weight_kg,
+                    health_notes = excluded.health_notes,
+                    training_setting = excluded.training_setting,
+                    updated_at = datetime('now')
+                """,
+                (
+                    profile.user_id,
+                    profile.full_name,
+                    profile.goal,
+                    profile.training_level,
+                    profile.meal_preference,
+                    profile.weight_kg,
+                    profile.health_notes,
+                    profile.training_setting,
+                ),
+            )
+            self._conn.commit()
+
+    def get(self, user_id: str) -> UserOnboardingProfile | None:
+        with self._lock:
+            row = self._conn.execute(
+                """
+                SELECT user_id, full_name, goal, training_level, meal_preference,
+                       weight_kg, health_notes, training_setting
+                FROM onboarding_profiles
+                WHERE user_id = ?
+                """,
+                (user_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return UserOnboardingProfile(
+            user_id=row[0],
+            full_name=row[1],
+            goal=row[2],
+            training_level=row[3],
+            meal_preference=row[4],
+            weight_kg=row[5],
+            health_notes=row[6],
+            training_setting=row[7],
+        )
+
+    def clear(self, user_id: str) -> bool:
+        with self._lock:
+            cur = self._conn.execute(
+                "DELETE FROM onboarding_profiles WHERE user_id = ?",
+                (user_id,),
+            )
+            self._conn.commit()
+            return cur.rowcount > 0
 
 
 def normalize_training_setting(value: str) -> str:
