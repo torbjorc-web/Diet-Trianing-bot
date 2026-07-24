@@ -4,7 +4,7 @@ import socket
 from dataclasses import asdict
 from typing import List, Literal
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
@@ -66,6 +66,7 @@ app = FastAPI(title="Diet-Training Bot API", version="1.0.0")
 
 DB_PATH = os.getenv("CHATBOT_DB_PATH", "data/chatbot.db")
 INVITE_CODE = os.getenv("PORTAL_INVITE_CODE", "").strip()
+ADMIN_VIEW_CODE = os.getenv("ADMIN_VIEW_CODE", "").strip()
 
 bot = ConcurrentChatbot(
     provider=MockAIProvider(),
@@ -166,6 +167,8 @@ PORTAL_HTML = """<!doctype html>
             <p>Use this page instead of Swagger. First fill onboarding, then chat.</p>
             <label>Invite Code (if enabled)</label>
             <input id=\"invite_code\" placeholder=\"Optional invite code\" />
+            <label>Admin View Code (owner only)</label>
+            <input id=\"admin_code\" placeholder=\"Optional admin code\" />
         </div>
 
         <div class=\"card\">
@@ -224,6 +227,14 @@ PORTAL_HTML = """<!doctype html>
             <button class=\"secondary\" onclick=\"loadHistory()\">Show History</button>
             <pre id=\"chat_result\">No chat call yet.</pre>
         </div>
+
+        <div class=\"card\">
+            <h2>3) Owner Tools</h2>
+            <p>Use this section to inspect what users submitted to the bot.</p>
+            <button onclick=\"loadAdminUsers()\">Show Users and Profiles</button>
+            <button class=\"secondary\" onclick=\"loadAdminInputs()\">Show Recent Chat Inputs</button>
+            <pre id=\"admin_result\">No admin query yet.</pre>
+        </div>
     </div>
 
     <script>
@@ -247,6 +258,10 @@ PORTAL_HTML = """<!doctype html>
             return (v("invite_code") || "").trim();
         }
 
+        function adminCode() {
+            return (v("admin_code") || "").trim();
+        }
+
         function withInvite(path) {
             const code = inviteCode();
             if (!code) {
@@ -261,6 +276,15 @@ PORTAL_HTML = """<!doctype html>
             const headers = { "Content-Type": "application/json" };
             if (code) {
                 headers["x-invite-code"] = code;
+            }
+            return headers;
+        }
+
+        function adminHeaders() {
+            const headers = requestHeaders();
+            const code = adminCode();
+            if (code) {
+                headers["x-admin-code"] = code;
             }
             return headers;
         }
@@ -348,6 +372,26 @@ PORTAL_HTML = """<!doctype html>
             show("chat_result", data);
         }
 
+        async function loadAdminUsers() {
+            const code = adminCode();
+            const path = code
+                ? `/admin/users?admin=${encodeURIComponent(code)}`
+                : "/admin/users";
+            const res = await fetch(withInvite(path), { headers: adminHeaders() });
+            const data = await res.json();
+            show("admin_result", data);
+        }
+
+        async function loadAdminInputs() {
+            const code = adminCode();
+            const path = code
+                ? `/admin/chat-inputs?limit=200&admin=${encodeURIComponent(code)}`
+                : "/admin/chat-inputs?limit=200";
+            const res = await fetch(withInvite(path), { headers: adminHeaders() });
+            const data = await res.json();
+            show("admin_result", data);
+        }
+
         loadInviteFromUrl();
         loadShareLinks();
     </script>
@@ -389,6 +433,10 @@ def _get_portal_share_urls(request: Request) -> list[str]:
     scheme = request.url.scheme
     port = request.url.port or 8000
     host_header = request.headers.get("host", f"127.0.0.1:{port}")
+
+    # In hosted environments such as Render, only share the public host URL.
+    if ".onrender.com" in host_header:
+        return [f"{scheme}://{host_header}/portal"]
 
     urls: list[str] = [f"{scheme}://{host_header}/portal"]
 
@@ -436,6 +484,25 @@ def _extract_invite_code(request: Request) -> str:
     return query_code
 
 
+def _extract_admin_code(request: Request) -> str:
+    header_code = request.headers.get("x-admin-code", "").strip()
+    if header_code:
+        return header_code
+    query_code = request.query_params.get("admin", "").strip()
+    return query_code
+
+
+def _assert_admin(request: Request) -> None:
+    if not ADMIN_VIEW_CODE:
+        raise HTTPException(
+            status_code=403,
+            detail="Admin inspection is disabled. Set ADMIN_VIEW_CODE to enable.",
+        )
+    supplied_code = _extract_admin_code(request)
+    if supplied_code != ADMIN_VIEW_CODE:
+        raise HTTPException(status_code=401, detail="Unauthorized admin access")
+
+
 @app.middleware("http")
 async def invite_code_middleware(request: Request, call_next):
     if not INVITE_CODE:
@@ -481,6 +548,30 @@ def portal_share_links(request: Request) -> dict:
     return {
         "urls": _get_portal_share_urls(request),
         "note": "People on your local network can use a LAN URL if your firewall allows port 8000.",
+    }
+
+
+@app.get("/admin/users")
+def admin_users(request: Request) -> dict:
+    _assert_admin(request)
+    chat_user_ids = set(history_store.list_user_ids())
+    profiles = onboarding_store.list_profiles()
+    profile_user_ids = {profile.user_id for profile in profiles}
+    all_user_ids = sorted(chat_user_ids | profile_user_ids)
+    return {
+        "count": len(all_user_ids),
+        "user_ids": all_user_ids,
+        "profiles": [profile_to_dict(profile) for profile in profiles],
+    }
+
+
+@app.get("/admin/chat-inputs")
+def admin_chat_inputs(request: Request, limit: int = 200) -> dict:
+    _assert_admin(request)
+    records = history_store.list_recent_records(limit=limit)
+    return {
+        "count": len(records),
+        "records": records,
     }
 
 
