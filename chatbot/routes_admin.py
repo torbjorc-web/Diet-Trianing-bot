@@ -28,8 +28,16 @@ def create_admin_router(
     @router.get("/admin/users")
     def admin_users(request: Request) -> dict:
         assert_admin(request)
-        chat_user_ids = set(history_store.list_user_ids())
-        profiles = onboarding_store.list_profiles()
+        chat_user_ids = {
+            user_id.strip()
+            for user_id in history_store.list_user_ids()
+            if str(user_id).strip()
+        }
+        profiles = [
+            profile
+            for profile in onboarding_store.list_profiles()
+            if str(profile.user_id).strip()
+        ]
         profile_user_ids = {profile.user_id for profile in profiles}
         all_user_ids = sorted(chat_user_ids | profile_user_ids)
         return {
