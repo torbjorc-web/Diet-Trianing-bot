@@ -1,18 +1,19 @@
 import logging
+import os
 import socket
 from dataclasses import asdict
 from typing import List, Literal
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from chatbot.engine import ConcurrentChatbot, MockAIProvider
-from chatbot.history_store import ChatTurn, InMemoryChatHistoryStore
+from chatbot.history_store import ChatTurn, SqliteChatHistoryStore
 from chatbot.logger_config import configure_logging
 from chatbot.onboarding import (
     ONBOARDING_QUESTIONS,
-    InMemoryOnboardingStore,
+    SqliteOnboardingStore,
     UserOnboardingProfile,
     normalize_training_setting,
     profile_to_dict,
@@ -63,6 +64,9 @@ class BatchChatRequest(BaseModel):
 
 app = FastAPI(title="Diet-Training Bot API", version="1.0.0")
 
+DB_PATH = os.getenv("CHATBOT_DB_PATH", "data/chatbot.db")
+INVITE_CODE = os.getenv("PORTAL_INVITE_CODE", "").strip()
+
 bot = ConcurrentChatbot(
     provider=MockAIProvider(),
     max_workers=6,
@@ -70,8 +74,8 @@ bot = ConcurrentChatbot(
     retries=2,
 )
 
-history_store = InMemoryChatHistoryStore()
-onboarding_store = InMemoryOnboardingStore()
+history_store = SqliteChatHistoryStore(db_path=DB_PATH)
+onboarding_store = SqliteOnboardingStore(db_path=DB_PATH)
 
 PORTAL_HTML = """<!doctype html>
 <html lang=\"en\">
@@ -160,6 +164,8 @@ PORTAL_HTML = """<!doctype html>
         <div class=\"card\">
             <h1>Diet-Training Bot Portal</h1>
             <p>Use this page instead of Swagger. First fill onboarding, then chat.</p>
+            <label>Invite Code (if enabled)</label>
+            <input id=\"invite_code\" placeholder=\"Optional invite code\" />
         </div>
 
         <div class=\"card\">
@@ -228,8 +234,30 @@ PORTAL_HTML = """<!doctype html>
             document.getElementById(id).textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
         }
 
+        function inviteCode() {
+            return (v("invite_code") || "").trim();
+        }
+
+        function withInvite(path) {
+            const code = inviteCode();
+            if (!code) {
+                return path;
+            }
+            const sep = path.includes("?") ? "&" : "?";
+            return `${path}${sep}invite=${encodeURIComponent(code)}`;
+        }
+
+        function requestHeaders() {
+            const code = inviteCode();
+            const headers = { "Content-Type": "application/json" };
+            if (code) {
+                headers["x-invite-code"] = code;
+            }
+            return headers;
+        }
+
         async function loadShareLinks() {
-            const res = await fetch("/portal/share-links");
+            const res = await fetch(withInvite("/portal/share-links"));
             const data = await res.json();
             shareUrls = data.urls || [];
             if (!shareUrls.length) {
@@ -270,9 +298,9 @@ PORTAL_HTML = """<!doctype html>
                 training_setting: v("training_setting")
             };
 
-            const res = await fetch("/onboarding/submit", {
+            const res = await fetch(withInvite("/onboarding/submit"), {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: requestHeaders(),
                 body: JSON.stringify(payload)
             });
 
@@ -281,7 +309,7 @@ PORTAL_HTML = """<!doctype html>
         }
 
         async function loadOnboarding() {
-            const res = await fetch(`/onboarding/${encodeURIComponent(v("user_id"))}`);
+            const res = await fetch(withInvite(`/onboarding/${encodeURIComponent(v("user_id"))}`));
             const data = await res.json();
             show("onboarding_result", data);
         }
@@ -295,9 +323,9 @@ PORTAL_HTML = """<!doctype html>
                 use_onboarding: true
             };
 
-            const res = await fetch("/chat", {
+            const res = await fetch(withInvite("/chat"), {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: requestHeaders(),
                 body: JSON.stringify(payload)
             });
 
@@ -306,7 +334,7 @@ PORTAL_HTML = """<!doctype html>
         }
 
         async function loadHistory() {
-            const res = await fetch(`/chat/history/${encodeURIComponent(v("user_id"))}`);
+            const res = await fetch(withInvite(`/chat/history/${encodeURIComponent(v("user_id"))}`));
             const data = await res.json();
             show("chat_result", data);
         }
@@ -375,6 +403,38 @@ def _get_portal_share_urls(request: Request) -> list[str]:
             deduped.append(url)
             seen.add(url)
     return deduped
+
+
+def _is_public_path(path: str) -> bool:
+    return path in {"/health", "/docs", "/openapi.json", "/redoc", "/favicon.ico"}
+
+
+def _extract_invite_code(request: Request) -> str:
+    header_code = request.headers.get("x-invite-code", "").strip()
+    if header_code:
+        return header_code
+    query_code = request.query_params.get("invite", "").strip()
+    return query_code
+
+
+@app.middleware("http")
+async def invite_code_middleware(request: Request, call_next):
+    if not INVITE_CODE:
+        return await call_next(request)
+
+    if _is_public_path(request.url.path):
+        return await call_next(request)
+
+    supplied_code = _extract_invite_code(request)
+    if supplied_code != INVITE_CODE:
+        return JSONResponse(
+            status_code=401,
+            content={
+                "detail": "Unauthorized. Provide valid invite code via ?invite=... or x-invite-code header.",
+            },
+        )
+
+    return await call_next(request)
 
 
 @app.on_event("startup")
