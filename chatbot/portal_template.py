@@ -164,6 +164,15 @@ def get_portal_html() -> str:
             <button class=\"secondary\" onclick=\"exportAdminCsv()\">Export CSV</button>
             <pre id=\"admin_result\">No admin query yet.</pre>
         </div>
+
+        <div class=\"card\">
+            <h2>4) Admin Quick Links</h2>
+            <p>Build direct owner links using your current invite code, admin code, and date window.</p>
+            <button onclick=\"refreshAdminLinks()\">Build Links</button>
+            <button class=\"secondary\" onclick=\"copyAdminUsersLink()\">Copy Users Link</button>
+            <button class=\"secondary\" onclick=\"openAdminUsersLink()\">Open Users Link</button>
+            <pre id=\"admin_links_result\">No links generated yet.</pre>
+        </div>
     </div>
 
     <script>
@@ -193,6 +202,69 @@ def get_portal_html() -> str:
 
         function adminWindow() {
             return (v(\"admin_window\") || \"7d\").trim();
+        }
+
+        function withQuery(path, params) {
+            const qs = new URLSearchParams();
+            Object.entries(params || {}).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && String(value).trim() !== \"\") {
+                    qs.set(key, String(value));
+                }
+            });
+            const query = qs.toString();
+            return query ? `${path}?${query}` : path;
+        }
+
+        function buildAdminLinks() {
+            const invite = inviteCode();
+            const admin = adminCode();
+            const window = adminWindow();
+
+            const usersPath = withQuery(\"/admin/users\", {
+                invite,
+                admin
+            });
+            const inputsPath = withQuery(\"/admin/chat-inputs\", {
+                limit: 200,
+                window,
+                invite,
+                admin
+            });
+            const csvPath = withQuery(\"/admin/chat-inputs.csv\", {
+                limit: 1000,
+                window,
+                invite,
+                admin
+            });
+
+            return {
+                users: `${window.location.origin}${usersPath}`,
+                inputs: `${window.location.origin}${inputsPath}`,
+                csv: `${window.location.origin}${csvPath}`
+            };
+        }
+
+        function refreshAdminLinks() {
+            const links = buildAdminLinks();
+            const text = [
+                \"Admin direct links:\",
+                `1. Users: ${links.users}`,
+                `2. Inputs: ${links.inputs}`,
+                `3. CSV: ${links.csv}`
+            ].join("\\n");
+            show(\"admin_links_result\", text);
+            return links;
+        }
+
+        async function copyAdminUsersLink() {
+            const links = refreshAdminLinks();
+            await navigator.clipboard.writeText(links.users);
+            show(\"admin_links_result\", `Copied users link:\n${links.users}`);
+        }
+
+        function openAdminUsersLink() {
+            const links = refreshAdminLinks();
+            window.open(links.users, \"_blank\", \"noopener\");
         }
 
         function withInvite(path) {
@@ -353,6 +425,7 @@ def get_portal_html() -> str:
 
         loadInviteFromUrl();
         loadShareLinks();
+        refreshAdminLinks();
     </script>
 </body>
 </html>
