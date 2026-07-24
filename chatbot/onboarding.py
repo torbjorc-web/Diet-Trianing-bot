@@ -178,6 +178,30 @@ class SqliteOnboardingStore:
             self._conn.commit()
             return cur.rowcount > 0
 
+    def list_profiles(self) -> list[UserOnboardingProfile]:
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT user_id, full_name, goal, training_level, meal_preference,
+                       weight_kg, health_notes, training_setting
+                FROM onboarding_profiles
+                ORDER BY user_id ASC
+                """
+            ).fetchall()
+        return [
+            UserOnboardingProfile(
+                user_id=row[0],
+                full_name=row[1],
+                goal=row[2],
+                training_level=row[3],
+                meal_preference=row[4],
+                weight_kg=row[5],
+                health_notes=row[6],
+                training_setting=row[7],
+            )
+            for row in rows
+        ]
+
 
 def normalize_training_setting(value: str) -> str:
     lowered = value.strip().lower()
