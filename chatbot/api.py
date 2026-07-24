@@ -230,8 +230,17 @@ PORTAL_HTML = """<!doctype html>
         let shareUrls = [];
 
         function v(id) { return document.getElementById(id).value; }
+        function setv(id, value) { document.getElementById(id).value = value; }
         function show(id, value) {
             document.getElementById(id).textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+        }
+
+        function loadInviteFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const invite = (params.get("invite") || "").trim();
+            if (invite) {
+                setv("invite_code", invite);
+            }
         }
 
         function inviteCode() {
@@ -339,6 +348,7 @@ PORTAL_HTML = """<!doctype html>
             show("chat_result", data);
         }
 
+        loadInviteFromUrl();
         loadShareLinks();
     </script>
 </body>
