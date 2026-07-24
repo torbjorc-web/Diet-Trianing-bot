@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from pathlib import Path
+import sqlite3
 from threading import Lock
 from typing import Dict, List
 
@@ -37,3 +39,79 @@ class InMemoryChatHistoryStore:
             cleared = len(self._store.get(user_id, []))
             self._store[user_id] = []
             return cleared
+
+
+class SqliteChatHistoryStore:
+    """Thread-safe SQLite-backed store for per-user chat history."""
+
+    def __init__(self, db_path: str) -> None:
+        self._lock = Lock()
+        path = Path(db_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self._conn = sqlite3.connect(path, check_same_thread=False)
+        self._conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS chat_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                prompt TEXT NOT NULL,
+                response TEXT NOT NULL,
+                success INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+            """
+        )
+        self._conn.commit()
+
+    def append(self, user_id: str, turn: ChatTurn) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO chat_history (user_id, prompt, response, success) VALUES (?, ?, ?, ?)",
+                (user_id, turn.prompt, turn.response, int(turn.success)),
+            )
+            self._conn.commit()
+
+    def get_recent(self, user_id: str, limit: int) -> List[ChatTurn]:
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT prompt, response, success
+                FROM chat_history
+                WHERE user_id = ?
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (user_id, limit),
+            ).fetchall()
+        rows = list(reversed(rows))
+        return [
+            ChatTurn(prompt=row[0], response=row[1], success=bool(row[2]))
+            for row in rows
+        ]
+
+    def get_all(self, user_id: str) -> List[ChatTurn]:
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT prompt, response, success
+                FROM chat_history
+                WHERE user_id = ?
+                ORDER BY id ASC
+                """,
+                (user_id,),
+            ).fetchall()
+        return [
+            ChatTurn(prompt=row[0], response=row[1], success=bool(row[2]))
+            for row in rows
+        ]
+
+    def clear(self, user_id: str) -> int:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT COUNT(*) FROM chat_history WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()
+            cleared = int(row[0]) if row else 0
+            self._conn.execute("DELETE FROM chat_history WHERE user_id = ?", (user_id,))
+            self._conn.commit()
+        return cleared
