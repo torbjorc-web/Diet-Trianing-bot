@@ -200,6 +200,8 @@ The CLI asks for both a user id and full name so each person can have a stable p
 - `chatbot/logger_config.py`: logging configuration
 - `chatbot/engine.py`: chatbot logic with retries and concurrency
 - `chatbot/planner.py`: meal and training plan generation from prompts
+- `chatbot/portal_template.py`: customer portal HTML/JS template
+- `chatbot/admin_reporting.py`: owner reporting filters and CSV formatting
 - `chatbot/demo.py`: runnable demonstration
 - `chatbot/cli.py`: interactive terminal chatbot
 - `chatbot/api.py`: FastAPI HTTP service
