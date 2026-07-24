@@ -194,7 +194,7 @@ def _get_admin_login_html() -> str:
             if (admin) headers['x-admin-code'] = admin;
             const res = await fetch(users, { headers });
             const text = await res.text();
-            setText('result', 'Status: ' + res.status + '\n' + text);
+            setText('result', 'Status: ' + res.status + '\\n' + text);
         }
 
         function openUsers() { const { users } = build(); window.open(users, '_blank', 'noopener'); }
