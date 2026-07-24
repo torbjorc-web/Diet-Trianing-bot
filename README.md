@@ -153,6 +153,12 @@ Example payload:
 
 This project includes `render.yaml` for quick deployment.
 
+If a deploy fails quickly, verify:
+
+- `runtime.txt` is present (pins Python version used on Render).
+- `PORTAL_INVITE_CODE` is set in Render dashboard (can be empty while testing).
+- Start command is `uvicorn chatbot.api:app --host 0.0.0.0 --port $PORT`.
+
 - Push code to GitHub.
 - In Render, click **New +** -> **Blueprint**.
 - Select your repository.
