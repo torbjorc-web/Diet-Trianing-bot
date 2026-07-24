@@ -8,6 +8,8 @@ PUBLIC_PATHS = {
     "/",
     "/portal",
     "/portal/share-links",
+    "/admin",
+    "/admin/login",
     "/health",
     "/docs",
     "/openapi.json",
