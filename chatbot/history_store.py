@@ -115,3 +115,33 @@ class SqliteChatHistoryStore:
             self._conn.execute("DELETE FROM chat_history WHERE user_id = ?", (user_id,))
             self._conn.commit()
         return cleared
+
+    def list_user_ids(self) -> List[str]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT DISTINCT user_id FROM chat_history ORDER BY user_id ASC"
+            ).fetchall()
+        return [str(row[0]) for row in rows]
+
+    def list_recent_records(self, limit: int = 200) -> List[dict]:
+        safe_limit = max(1, min(1000, int(limit)))
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT user_id, prompt, response, success, created_at
+                FROM chat_history
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (safe_limit,),
+            ).fetchall()
+        return [
+            {
+                "user_id": str(row[0]),
+                "prompt": str(row[1]),
+                "response": str(row[2]),
+                "success": bool(row[3]),
+                "created_at": str(row[4]),
+            }
+            for row in rows
+        ]
