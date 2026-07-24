@@ -81,6 +81,8 @@ curl -X POST "http://127.0.0.1:8000/chat" \
 - `DELETE /chat/history/{user_id}`: clear stored chat history for user
 - `GET /admin/users`: owner-only list of users and onboarding profiles
 - `GET /admin/chat-inputs?limit=200`: owner-only recent user prompts and bot responses
+- `GET /admin/chat-inputs?limit=200&window=today|7d|30d|all`: filtered owner view
+- `GET /admin/chat-inputs.csv?limit=1000&window=today|7d|30d|all`: CSV export
 
 ## Onboarding Start Point
 
@@ -158,6 +160,7 @@ Example payload:
 - Set `ADMIN_VIEW_CODE` to enable owner-only inspection endpoints.
 - Use `x-admin-code` header or `?admin=...` query parameter.
 - In the portal, fill **Admin View Code** and use the **Owner Tools** section to inspect user input.
+- Owner Tools includes date window filters and a CSV export button.
 
 ## Deploy On Render
 
