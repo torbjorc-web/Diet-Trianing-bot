@@ -197,9 +197,9 @@ def _get_admin_login_html() -> str:
             setText('result', 'Status: ' + res.status + '\\n' + text);
         }
 
-        function openUsers() { const { users } = build(); window.open(users, '_blank', 'noopener'); }
-        function openInputs() { const { inputs } = build(); window.open(inputs, '_blank', 'noopener'); }
-        function openCsv() { const { csv } = build(); window.open(csv, '_blank', 'noopener'); }
+        function openUsers() { const { users } = build(); window.location.assign(users); }
+        function openInputs() { const { inputs } = build(); window.location.assign(inputs); }
+        function openCsv() { const { csv } = build(); window.location.assign(csv); }
 
         const inviteFromUrl = new URLSearchParams(window.location.search).get('invite') || '';
         if (inviteFromUrl) {
