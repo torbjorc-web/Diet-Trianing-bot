@@ -137,9 +137,39 @@ Example payload:
 
 ## Chat History Notes
 
-- History storage is in-memory and resets when the server restarts.
-- History is stored per `user_id`.
+- History and onboarding are now stored in SQLite (`CHATBOT_DB_PATH`, default: `data/chatbot.db`).
+- Data is stored per `user_id`.
 - `use_history=true` lets follow-up prompts reuse previous turns.
+
+## Access Protection
+
+- Set `PORTAL_INVITE_CODE` to require an invite code for all portal/API routes except health/docs.
+- Clients can send invite code via:
+  - query parameter: `?invite=YOUR_CODE`
+  - header: `x-invite-code: YOUR_CODE`
+- The portal includes an Invite Code input and automatically attaches it to requests.
+
+## Deploy On Render
+
+This project includes `render.yaml` for quick deployment.
+
+- Push code to GitHub.
+- In Render, click **New +** -> **Blueprint**.
+- Select your repository.
+- Set environment variables.
+
+- `PORTAL_INVITE_CODE`: your private invite code
+- `CHATBOT_DB_PATH`: keep default or set custom path
+
+- Deploy and open.
+
+- `https://<your-render-app>.onrender.com/portal`
+
+Start command used on Render:
+
+```bash
+uvicorn chatbot.api:app --host 0.0.0.0 --port $PORT
+```
 
 ## CLI Onboarding
 
