@@ -178,6 +178,7 @@ If a deploy fails quickly, verify:
 - Set environment variables.
 
 - `PORTAL_INVITE_CODE`: your private invite code
+- `ADMIN_VIEW_CODE`: your private owner/admin inspection code
 - `CHATBOT_DB_PATH`: keep default or set custom path
 
 - Deploy and open.
