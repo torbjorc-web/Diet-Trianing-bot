@@ -47,6 +47,8 @@ Open `http://127.0.0.1:8000/` or `http://127.0.0.1:8000/portal`.
 The user can fill onboarding fields and chat directly from the web page.
 The portal also includes a Share Links panel with one-click copy.
 
+On Render, the Share Links panel now only shows the public `*.onrender.com` portal URL.
+
 Then call:
 
 ```bash
@@ -77,6 +79,8 @@ curl -X POST "http://127.0.0.1:8000/chat" \
 - `POST /chat/batch`: batch requests
 - `GET /chat/history/{user_id}`: get stored chat history for user
 - `DELETE /chat/history/{user_id}`: clear stored chat history for user
+- `GET /admin/users`: owner-only list of users and onboarding profiles
+- `GET /admin/chat-inputs?limit=200`: owner-only recent user prompts and bot responses
 
 ## Onboarding Start Point
 
@@ -148,6 +152,12 @@ Example payload:
   - query parameter: `?invite=YOUR_CODE`
   - header: `x-invite-code: YOUR_CODE`
 - The portal includes an Invite Code input and automatically attaches it to requests.
+
+## Owner Monitoring
+
+- Set `ADMIN_VIEW_CODE` to enable owner-only inspection endpoints.
+- Use `x-admin-code` header or `?admin=...` query parameter.
+- In the portal, fill **Admin View Code** and use the **Owner Tools** section to inspect user input.
 
 ## Deploy On Render
 
