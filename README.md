@@ -206,6 +206,8 @@ The CLI asks for both a user id and full name so each person can have a stable p
 - `chatbot/routes_chat.py`: chat endpoints and contextual prompt flow
 - `chatbot/routes_onboarding.py`: onboarding endpoints and profile persistence flow
 - `chatbot/routes_admin.py`: owner/admin inspection and CSV export endpoints
+- `chatbot/routes_portal.py`: portal page endpoints and share-link endpoint
+- `chatbot/security.py`: invite/admin code extraction and invite middleware
 - `chatbot/demo.py`: runnable demonstration
 - `chatbot/cli.py`: interactive terminal chatbot
 - `chatbot/api.py`: FastAPI app setup, middleware, health and portal endpoints
