@@ -135,6 +135,7 @@ Example payload:
 ## CLI Onboarding
 
 When running `python -m chatbot.cli`, onboarding questions are asked at startup before normal chat begins.
+The CLI asks for both a user id and full name so each person can have a stable profile and friendly greeting.
 
 ## Project Structure
 
