@@ -119,6 +119,31 @@ The chat endpoint can automatically use this profile context with `use_onboardin
 Validation note: `meal_preference` is strictly validated by the API and must be one of
 `halal`, `kosher`, `vegan`, `vegetarian`, or `none`. Unsupported values return HTTP 422.
 
+## Running Tests
+
+Install the test dependencies and run the suite from the repository root:
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+Useful variations:
+
+```bash
+pytest tests/test_planner.py          # one file
+pytest -k onboarding                  # match test names
+pytest -v                             # verbose output
+```
+
+Notes:
+
+- Tests never call a real AI provider or the network: the provider is replaced with a
+  deterministic stub, so plan output is stable and no API keys are needed.
+- Each test gets a fresh SQLite database in a temporary directory, so onboarding
+  profiles and chat history never leak between tests.
+- API tests use `fastapi.testclient.TestClient` against the real routes.
+
 ## Swagger Examples
 
 After starting the API, open `http://127.0.0.1:8000/docs`.
@@ -212,3 +237,4 @@ The CLI asks for both a user id and full name so each person can have a stable p
 - `chatbot/demo.py`: runnable demonstration
 - `chatbot/cli.py`: interactive terminal chatbot
 - `chatbot/api.py`: FastAPI app setup, middleware, health and portal endpoints
+- `tests/`: pytest suite (unit tests plus `TestClient` API tests)
