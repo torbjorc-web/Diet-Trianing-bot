@@ -23,25 +23,25 @@ The implementation also focuses on:
 
 3. Run one of the modes:
 
-### Demo
+#### Demo
 
 ```bash
 python -m chatbot.demo
 ```
 
-### Interactive CLI
+#### Interactive CLI
 
 ```bash
 python -m chatbot.cli
 ```
 
-### FastAPI server
+#### FastAPI server
 
 ```bash
 uvicorn chatbot.api:app --reload
 ```
 
-### Customer portal
+#### Customer portal
 
 Open `http://127.0.0.1:8000/` or `http://127.0.0.1:8000/portal`.
 The user can fill onboarding fields and chat directly from the web page.
@@ -136,10 +136,8 @@ pytest -v                             # verbose output
 
 Notes:
 
-- Tests never call a real AI provider or the network: the provider is replaced with a
-  deterministic stub, so plan output is stable and no API keys are needed.
-- Each test gets a fresh SQLite database in a temporary directory, so onboarding
-  profiles and chat history never leak between tests.
+- Tests never call a real AI provider or the network: the provider is replaced with a deterministic stub, so plan output is stable and no API keys are needed.
+- Each test gets a fresh SQLite database in a temporary directory, so onboarding profiles and chat history never leak between tests.
 - API tests use `fastapi.testclient.TestClient` against the real routes.
 
 ## Swagger Examples
