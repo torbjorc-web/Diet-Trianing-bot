@@ -17,31 +17,31 @@ The implementation also focuses on:
 1. Create and activate a virtual environment.
 2. Install dependencies:
 
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-1. Run one of the modes:
+3. Run one of the modes:
 
-Demo:
+### Demo
 
 ```bash
 python -m chatbot.demo
 ```
 
-Interactive CLI:
+### Interactive CLI
 
 ```bash
 python -m chatbot.cli
 ```
 
-FastAPI server:
+### FastAPI server
 
 ```bash
 uvicorn chatbot.api:app --reload
 ```
 
-Customer portal (no Swagger needed):
+### Customer portal
 
 Open `http://127.0.0.1:8000/` or `http://127.0.0.1:8000/portal`.
 The user can fill onboarding fields and chat directly from the web page.
@@ -111,13 +111,11 @@ Example onboarding submit payload:
 }
 ```
 
-Tip: keep `user_id` stable for each person (for example `anna`), and use `full_name`
-for the friendly greeting in responses.
+Tip: keep `user_id` stable for each person (for example `anna`), and use `full_name` for the friendly greeting in responses.
 
 The chat endpoint can automatically use this profile context with `use_onboarding=true`.
 
-Validation note: `meal_preference` is strictly validated by the API and must be one of
-`halal`, `kosher`, `vegan`, `vegetarian`, or `none`. Unsupported values return HTTP 422.
+Validation note: `meal_preference` is strictly validated by the API and must be one of `halal`, `kosher`, `vegan`, `vegetarian`, or `none`. Unsupported values return HTTP 422.
 
 ## Swagger Examples
 
@@ -172,18 +170,16 @@ If a deploy fails quickly, verify:
 - `PORTAL_INVITE_CODE` is set in Render dashboard (can be empty while testing).
 - Start command is `uvicorn chatbot.api:app --host 0.0.0.0 --port $PORT`.
 
-- Push code to GitHub.
-- In Render, click **New +** -> **Blueprint**.
-- Select your repository.
-- Set environment variables.
+Steps:
 
-- `PORTAL_INVITE_CODE`: your private invite code
-- `ADMIN_VIEW_CODE`: your private owner/admin inspection code
-- `CHATBOT_DB_PATH`: keep default or set custom path
-
-- Deploy and open.
-
-- `https://<your-render-app>.onrender.com/portal`
+1. Push code to GitHub.
+2. In Render, click **New +** -> **Blueprint**.
+3. Select your repository.
+4. Set environment variables:
+   - `PORTAL_INVITE_CODE`: your private invite code
+   - `ADMIN_VIEW_CODE`: your private owner/admin inspection code
+   - `CHATBOT_DB_PATH`: keep default or set custom path
+5. Deploy and open `https://<your-render-app>.onrender.com/portal`.
 
 Start command used on Render:
 

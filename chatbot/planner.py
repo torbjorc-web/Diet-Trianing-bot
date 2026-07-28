@@ -1,5 +1,19 @@
+import logging
 import re
 from dataclasses import dataclass
+from typing import Optional
+
+from chatbot.ml import (
+    DietStyleClassifier,
+    FuzzyMatcher,
+    GoalClassifier,
+    HealthConditionExtractor,
+    MealPreferenceClassifier,
+    TrainingLevelClassifier,
+    TrainingSettingClassifier,
+)
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -21,7 +35,36 @@ class UserPreferences:
 
 
 class DietTrainingPlanner:
-    """Generates simple diet and training plans from natural-language prompts."""
+    """Generates diet and training plans using hybrid rule-based and ML approach.
+    
+    Uses scikit-learn classifiers for preference extraction with fuzzy matching fallback.
+    Supports training on user feedback for continuous improvement.
+    """
+
+    def __init__(self, use_ml: bool = True):
+        """Initialize planner with optional ML classifiers.
+        
+        Args:
+            use_ml: Whether to use ML classifiers (default True)
+        """
+        self.use_ml = use_ml
+        self.goal_classifier: Optional[GoalClassifier] = None
+        self.diet_style_classifier: Optional[DietStyleClassifier] = None
+        self.meal_preference_classifier: Optional[MealPreferenceClassifier] = None
+        self.training_level_classifier: Optional[TrainingLevelClassifier] = None
+        self.training_setting_classifier: Optional[TrainingSettingClassifier] = None
+        
+        if use_ml:
+            try:
+                self.goal_classifier = GoalClassifier()
+                self.diet_style_classifier = DietStyleClassifier()
+                self.meal_preference_classifier = MealPreferenceClassifier()
+                self.training_level_classifier = TrainingLevelClassifier()
+                self.training_setting_classifier = TrainingSettingClassifier()
+                logger.info("ML classifiers initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize ML classifiers: {e}. Falling back to rule-based.")
+                self.use_ml = False
 
     def build_plan(self, user_id: str, prompt: str) -> str:
         intent = self._detect_intent(prompt)
@@ -49,83 +92,104 @@ class DietTrainingPlanner:
         return "\n\n".join(sections)
 
     def _detect_intent(self, prompt: str) -> PlanIntent:
-        lowered = prompt.lower()
-        meal_keywords = ("meal", "diet", "nutrition", "calorie", "food")
-        training_keywords = ("training", "workout", "exercise", "gym", "program")
-
-        wants_meal = any(word in lowered for word in meal_keywords)
-        wants_training = any(word in lowered for word in training_keywords)
-
-        if "both" in lowered or "plan for meal and training" in lowered:
-            wants_meal = True
-            wants_training = True
-
-        return PlanIntent(wants_meal_plan=wants_meal, wants_training_plan=wants_training)
+        """Detect user intent using fuzzy matching or rule-based approach.
+        
+        Uses fuzzy string matching for improved robustness to typos and variations.
+        """
+        # Use fuzzy matching if available
+        intent_dict = FuzzyMatcher.match_intent(prompt, threshold=65)
+        
+        return PlanIntent(
+            wants_meal_plan=intent_dict["wants_meal_plan"],
+            wants_training_plan=intent_dict["wants_training_plan"]
+        )
 
     def _extract_preferences(self, prompt: str) -> UserPreferences:
+        """Extract user preferences using ML classifiers with rule-based fallback.
+        
+        Attempts to use trained ML models first, falls back to regex/keyword matching.
+        """
         lowered = prompt.lower()
 
-        goal = "general fitness"
-        if "lose" in lowered or "fat loss" in lowered or "weight loss" in lowered:
-            goal = "fat loss"
-        elif "gain" in lowered or "muscle" in lowered or "bulk" in lowered:
-            goal = "muscle gain"
-        elif "maintain" in lowered:
-            goal = "maintenance"
+        # Goal extraction - use ML classifier if available
+        if self.use_ml and self.goal_classifier:
+            goal, confidence = self.goal_classifier.predict(prompt, confidence_threshold=0.2)
+            logger.debug(f"Goal classification: {goal} (confidence: {confidence:.2f})")
+        else:
+            goal = "general fitness"
+            if "lose" in lowered or "fat loss" in lowered or "weight loss" in lowered:
+                goal = "fat loss"
+            elif "gain" in lowered or "muscle" in lowered or "bulk" in lowered:
+                goal = "muscle gain"
+            elif "maintain" in lowered:
+                goal = "maintenance"
 
-        diet_style = "balanced"
-        if "vegetarian" in lowered:
-            diet_style = "vegetarian"
-        elif "vegan" in lowered:
-            diet_style = "vegan"
-        elif "low carb" in lowered:
-            diet_style = "low-carb"
-        elif "high protein" in lowered:
-            diet_style = "high-protein"
+        # Diet style extraction - use ML classifier if available
+        if self.use_ml and self.diet_style_classifier:
+            diet_style, confidence = self.diet_style_classifier.predict(prompt, confidence_threshold=0.2)
+            logger.debug(f"Diet style classification: {diet_style} (confidence: {confidence:.2f})")
+        else:
+            diet_style = "balanced"
+            if "vegetarian" in lowered:
+                diet_style = "vegetarian"
+            elif "vegan" in lowered:
+                diet_style = "vegan"
+            elif "low carb" in lowered:
+                diet_style = "low-carb"
+            elif "high protein" in lowered:
+                diet_style = "high-protein"
 
-        meal_preference = "none"
-        if "halal" in lowered:
-            meal_preference = "halal"
-        elif "kosher" in lowered:
-            meal_preference = "kosher"
-        elif "vegan" in lowered:
-            meal_preference = "vegan"
-        elif "vegetarian" in lowered:
-            meal_preference = "vegetarian"
+        # Meal preference extraction - use ML classifier if available
+        if self.use_ml and self.meal_preference_classifier:
+            meal_preference, confidence = self.meal_preference_classifier.predict(prompt, confidence_threshold=0.2)
+            logger.debug(f"Meal preference classification: {meal_preference} (confidence: {confidence:.2f})")
+        else:
+            meal_preference = "none"
+            if "halal" in lowered:
+                meal_preference = "halal"
+            elif "kosher" in lowered:
+                meal_preference = "kosher"
+            elif "vegan" in lowered:
+                meal_preference = "vegan"
+            elif "vegetarian" in lowered:
+                meal_preference = "vegetarian"
 
-        training_level = "beginner"
-        if "intermediate" in lowered:
-            training_level = "intermediate"
-        elif "advanced" in lowered:
-            training_level = "advanced"
+        # Training level extraction - use ML classifier if available
+        if self.use_ml and self.training_level_classifier:
+            training_level, confidence = self.training_level_classifier.predict(prompt, confidence_threshold=0.2)
+            logger.debug(f"Training level classification: {training_level} (confidence: {confidence:.2f})")
+        else:
+            training_level = "beginner"
+            if "intermediate" in lowered:
+                training_level = "intermediate"
+            elif "advanced" in lowered:
+                training_level = "advanced"
 
+        # Training days extraction - always use regex (no ML needed)
         days_match = re.search(r"(\d)\s*(day|days)", lowered)
         training_days = 3
         if days_match:
             training_days = max(2, min(6, int(days_match.group(1))))
 
+        # Weight extraction - always use regex (no ML needed)
         weight_match = re.search(r"(\d{2,3}(?:\.\d+)?)\s*(kg|kgs|kilogram|kilograms)", lowered)
         weight_kg: float | None = None
         if weight_match:
             weight_kg = float(weight_match.group(1))
 
-        training_setting = "self"
-        if "studio" in lowered or "gym" in lowered:
-            training_setting = "studio"
-        elif "group" in lowered or "class" in lowered or "team" in lowered:
-            training_setting = "group"
+        # Training setting extraction - use ML classifier if available
+        if self.use_ml and self.training_setting_classifier:
+            training_setting, confidence = self.training_setting_classifier.predict(prompt, confidence_threshold=0.2)
+            logger.debug(f"Training setting classification: {training_setting} (confidence: {confidence:.2f})")
+        else:
+            training_setting = "self"
+            if "studio" in lowered or "gym" in lowered:
+                training_setting = "studio"
+            elif "group" in lowered or "class" in lowered or "team" in lowered:
+                training_setting = "group"
 
-        health_notes = "none"
-        health_match = re.search(
-            r"health notes:\s*(.+)|health issues?:\s*(.+)|injur(?:y|ies):\s*(.+)",
-            lowered,
-        )
-        if health_match:
-            matched = next((g for g in health_match.groups() if g), None)
-            if matched:
-                health_notes = matched.strip()
-        elif any(k in lowered for k in ("knee", "back pain", "diabetes", "asthma", "hypertension")):
-            health_notes = "has health considerations"
+        # Health notes extraction - use ML extractor
+        health_notes = HealthConditionExtractor.extract(prompt)
 
         return UserPreferences(
             goal=goal,
@@ -137,6 +201,33 @@ class DietTrainingPlanner:
             health_notes=health_notes,
             training_setting=training_setting,
         )
+    
+    def train_classifier(self, classifier_type: str, texts: list[str], labels: list[str]) -> None:
+        """Train a specific classifier on new examples.
+        
+        Args:
+            classifier_type: One of 'goal', 'diet_style', 'meal_preference', 'training_level', 'training_setting'
+            texts: Training text examples
+            labels: Corresponding labels
+        """
+        if not self.use_ml:
+            logger.warning("ML not enabled. Cannot train classifiers.")
+            return
+        
+        classifier_map = {
+            "goal": self.goal_classifier,
+            "diet_style": self.diet_style_classifier,
+            "meal_preference": self.meal_preference_classifier,
+            "training_level": self.training_level_classifier,
+            "training_setting": self.training_setting_classifier,
+        }
+        
+        classifier = classifier_map.get(classifier_type)
+        if classifier:
+            classifier.train(texts, labels)
+            logger.info(f"Trained {classifier_type} classifier with {len(texts)} examples")
+        else:
+            logger.warning(f"Unknown classifier type: {classifier_type}")
 
     def _build_meal_plan(self, preferences: UserPreferences) -> str:
         calories = {
