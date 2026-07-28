@@ -188,8 +188,14 @@ class DietTrainingPlanner:
             elif "group" in lowered or "class" in lowered or "team" in lowered:
                 training_setting = "group"
 
-        # Health notes extraction - use ML extractor
+        # Health notes extraction - preserve explicit notes, keep implicit keyword
+        # matches generic to avoid overfitting to specific phrasing.
         health_notes = HealthConditionExtractor.extract(prompt)
+        has_explicit_health_note = bool(
+            re.search(r"health notes?:|health issues?:|injur(?:y|ies):", lowered)
+        )
+        if health_notes != "none" and not has_explicit_health_note:
+            health_notes = "has health considerations"
 
         return UserPreferences(
             goal=goal,
