@@ -5,7 +5,8 @@
 The ML and feedback systems have been refactored from two large monolithic files into two specialized packages with clear separation of concerns.
 
 ### Before (Monolithic)
-```
+
+```text
 chatbot/
 ├── ml_classifier.py         # 400+ lines, 8 classes
 ├── feedback_learning.py     # 300+ lines, 3 classes
@@ -13,7 +14,8 @@ chatbot/
 ```
 
 ### After (Modular)
-```
+
+```text
 chatbot/
 ├── ml/
 │   ├── __init__.py          # Exports
@@ -35,26 +37,31 @@ chatbot/
 ## Benefits
 
 ✅ **Single Responsibility Principle**
+
 - Each module does one thing well
 - Easier to understand and modify
 - Reduced cognitive load
 
 ✅ **Scalability**
+
 - Easy to add new classifiers
 - Easy to extend feedback pipeline
 - Clear extension points
 
 ✅ **Testability**
+
 - Test modules independently
 - Minimal mocking needed
 - Better test organization
 
 ✅ **Reusability**
+
 - Use components in other projects
 - Clean package-level exports
 - Well-documented interfaces
 
 ✅ **Maintainability**
+
 - Changes isolated to specific modules
 - Clear dependencies
 - Better code organization
@@ -64,12 +71,14 @@ chatbot/
 ### For Users of the Old Structure
 
 **Old imports** (no longer work):
+
 ```python
 from chatbot.ml_classifier import GoalClassifier
 from chatbot.feedback_learning import FeedbackAPIHandler
 ```
 
 **New imports**:
+
 ```python
 from chatbot.ml import GoalClassifier
 from chatbot.feedback import FeedbackAPIHandler
@@ -78,6 +87,7 @@ from chatbot.feedback import FeedbackAPIHandler
 ### For Developers
 
 The planner has been updated to use the new imports:
+
 ```python
 # OLD (in planner.py)
 from chatbot.ml_classifier import (...)
@@ -96,6 +106,7 @@ The following files should be **archived or deleted** as they're replaced by the
 - `chatbot/feedback_learning.py` → Split into `chatbot/feedback/*`
 
 **To archive** (recommended for safety):
+
 ```bash
 # Create backup directory
 mkdir -p backups/old_monolithic
@@ -110,6 +121,7 @@ git commit -m "Archive monolithic ML files (split into modular packages)"
 ```
 
 **To delete** (if confident):
+
 ```bash
 rm chatbot/ml_classifier.py
 rm chatbot/feedback_learning.py
