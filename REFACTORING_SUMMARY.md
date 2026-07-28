@@ -2,7 +2,8 @@
 
 ## What Changed
 
-The ML and feedback systems have been refactored from two large monolithic files into two specialized packages with clear separation of concerns.
+The ML and feedback systems have been refactored from two large monolithic
+files into two specialized packages with clear separation of concerns.
 
 ### Before (Monolithic)
 
@@ -100,7 +101,8 @@ from chatbot.feedback import (...)
 
 ## Old Files
 
-The following files should be **archived or deleted** as they're replaced by the new modular structure:
+The following files should be **archived or deleted** as they are replaced by
+the new modular structure:
 
 - `chatbot/ml_classifier.py` → Split into `chatbot/ml/*`
 - `chatbot/feedback_learning.py` → Split into `chatbot/feedback/*`
@@ -131,7 +133,8 @@ git commit -m "Remove monolithic ML files (replaced by modular packages)"
 
 ## Testing
 
-All existing tests should still pass with the new modular structure. If tests import from old modules, update them:
+All existing tests should still pass with the new modular structure.
+If tests import from old modules, update them:
 
 ```python
 # OLD (if any tests use this)
@@ -162,27 +165,24 @@ from chatbot.ml import GoalClassifier
 
 ### ML Package (`chatbot/ml/`)
 
-| File | Purpose | Lines | Key Classes |
-|------|---------|-------|------------|
-| `__init__.py` | Package exports | ~15 | - |
-| `base_classifier.py` | Base class | ~100 | `MLClassifier` |
-| `classifiers.py` | Implementations | ~140 | 5 classifiers |
-| `intent_detection.py` | Fuzzy matching | ~60 | `FuzzyMatcher` |
-| `health_extractor.py` | Health parsing | ~50 | `HealthConditionExtractor` |
-| `README.md` | Documentation | ~200 | - |
+- `__init__.py`: package exports (~15 lines)
+- `base_classifier.py`: base class (~100 lines), `MLClassifier`
+- `classifiers.py`: implementations (~140 lines), 5 classifiers
+- `intent_detection.py`: fuzzy matching (~60 lines), `FuzzyMatcher`
+- `health_extractor.py`: health parsing (~50 lines),
+  `HealthConditionExtractor`
+- `README.md`: documentation (~200 lines)
 
 **Total**: ~565 lines (was 400+ in single file)
 
 ### Feedback Package (`chatbot/feedback/`)
 
-| File | Purpose | Lines | Key Classes |
-|------|---------|-------|------------|
-| `__init__.py` | Package exports | ~15 | - |
-| `models.py` | Data model | ~20 | `UserFeedback` |
-| `collector.py` | Storage & analysis | ~140 | `FeedbackCollector` |
-| `retrainer.py` | Model training | ~90 | `ModelRetrainer` |
-| `api_handler.py` | API interface | ~110 | `FeedbackAPIHandler` |
-| `README.md` | Documentation | ~250 | - |
+- `__init__.py`: package exports (~15 lines)
+- `models.py`: data model (~20 lines), `UserFeedback`
+- `collector.py`: storage and analysis (~140 lines), `FeedbackCollector`
+- `retrainer.py`: model training (~90 lines), `ModelRetrainer`
+- `api_handler.py`: API interface (~110 lines), `FeedbackAPIHandler`
+- `README.md`: documentation (~250 lines)
 
 **Total**: ~625 lines (was 300+ in single file)
 

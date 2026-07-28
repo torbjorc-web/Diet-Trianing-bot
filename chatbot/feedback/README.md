@@ -83,7 +83,7 @@ API interface for feedback workflow.
 
 ## Workflow
 
-```
+```text
 User generates plan
         ↓
 User rates plan (1-5)
@@ -102,7 +102,8 @@ Models perform better on similar inputs
 ## Data Flow
 
 ### Recording Feedback
-```
+
+```text
 UserFeedback object
     ↓
 FeedbackCollector.record_feedback()
@@ -112,7 +113,8 @@ FeedbackCollector.record_feedback()
 ```
 
 ### Analyzing Feedback
-```
+
+```text
 FeedbackCollector.get_misclassified_examples()
     ↓
 Read JSONL file
@@ -126,7 +128,8 @@ Return organized by classifier type
 ```
 
 ### Retraining Models
-```
+
+```text
 ModelRetrainer.retrain_from_feedback()
     ↓
 Get misclassifications from FeedbackCollector
@@ -142,6 +145,7 @@ Return results for each classifier
 ## Integration Points
 
 ### With Planner
+
 ```python
 from chatbot.planner import DietTrainingPlanner
 from chatbot.feedback import FeedbackAPIHandler
@@ -153,6 +157,7 @@ handler = FeedbackAPIHandler(planner)
 ```
 
 ### With FastAPI
+
 ```python
 from fastapi import FastAPI
 from chatbot.feedback import FeedbackAPIHandler
@@ -177,6 +182,7 @@ async def retrain(min_samples: int = 10):
 
 ### Feedback Threshold
 Minimum feedback samples needed to trigger retraining:
+
 ```python
 # Require at least 20 corrections
 handler.trigger_retraining(min_feedback_count=20)
@@ -202,6 +208,7 @@ Required in `UserFeedback`:
 ## Analysis
 
 ### View Feedback Statistics
+
 ```python
 from chatbot.feedback import FeedbackCollector
 
@@ -214,6 +221,7 @@ print(f"Helpful rate: {stats['helpful_rate']:.0%}")
 ```
 
 ### View Misclassifications
+
 ```python
 misclassified = collector.get_misclassified_examples()
 
@@ -224,6 +232,7 @@ for example in misclassified["goal"]:
 ```
 
 ### Export for Analysis
+
 ```python
 import pandas as pd
 
@@ -242,6 +251,7 @@ print(poor_plans[["prompt", "specific_feedback"]])
 ## Monitoring
 
 ### Check Model Improvement
+
 ```python
 # Collect feedback periodically
 # View stats to see plan quality trend
@@ -252,6 +262,7 @@ stats = handler.get_feedback_stats()
 ```
 
 ### Performance Tracking
+
 ```python
 # Before retraining
 before = handler.get_feedback_stats()
@@ -307,7 +318,7 @@ print(f"Improvement: {improvement:.1%}")
 
 ## Files & Storage
 
-```
+```text
 data/
 └── feedback/
     ├── user_feedback.jsonl    # JSONL format (one per line)

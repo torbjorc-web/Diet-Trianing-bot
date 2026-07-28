@@ -20,6 +20,7 @@ Base class for all ML classifiers. Provides:
 - Automatic model loading/saving
 
 **Usage**:
+
 ```python
 from chatbot.ml.base_classifier import MLClassifier
 
@@ -39,6 +40,7 @@ Five specialized classifier implementations:
 - `TrainingSettingClassifier` - Training environment (self, studio, group)
 
 **Usage**:
+
 ```python
 from chatbot.ml import GoalClassifier
 
@@ -59,6 +61,7 @@ Fuzzy string matching for robust intent detection.
 - Configurable thresholds
 
 **Usage**:
+
 ```python
 from chatbot.ml import FuzzyMatcher
 
@@ -79,6 +82,7 @@ Extracts health conditions and constraints from prompts.
 - Normalized health notes
 
 **Usage**:
+
 ```python
 from chatbot.ml import HealthConditionExtractor
 
@@ -86,7 +90,7 @@ health = HealthConditionExtractor.extract("I have knee pain and asthma")
 # Returns: "knee pain/issues, asthma"
 ```
 
-### Package-Level Imports
+### Feedback Package Imports
 
 ```python
 from chatbot.ml import (
@@ -104,12 +108,13 @@ from chatbot.ml import (
 
 Handles user feedback collection, analysis, and automatic model retraining.
 
-### Modules
+### Feedback Modules
 
 #### `models.py`
 Data model for user feedback.
 
 **Usage**:
+
 ```python
 from chatbot.feedback import UserFeedback
 from datetime import datetime
@@ -140,6 +145,7 @@ Records and analyzes user feedback.
 - Misclassification detection
 
 **Usage**:
+
 ```python
 from chatbot.feedback import FeedbackCollector, UserFeedback
 
@@ -175,6 +181,7 @@ Automatically retrains models using collected feedback.
 - Threshold-based triggering
 
 **Usage**:
+
 ```python
 from chatbot.feedback import ModelRetrainer
 
@@ -197,6 +204,7 @@ API interface for feedback submission and retraining.
 - Programmatic retraining trigger
 
 **Usage**:
+
 ```python
 from chatbot.feedback import FeedbackAPIHandler
 
