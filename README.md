@@ -15,41 +15,37 @@ The implementation also focuses on:
 ## Quick Start
 
 1. Create and activate a virtual environment.
-2. Install dependencies:
+2. Install dependencies: `pip install -r requirements.txt`
+3. Run one of the modes below.
 
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Run one of the modes:
-
-#### Demo
+## Running the Demo
 
 ```bash
 python -m chatbot.demo
 ```
 
-#### Interactive CLI
+## Running the CLI
 
 ```bash
 python -m chatbot.cli
 ```
 
-#### FastAPI server
+## Running the FastAPI Server
 
 ```bash
 uvicorn chatbot.api:app --reload
 ```
 
-#### Customer portal
-
 Open `http://127.0.0.1:8000/` or `http://127.0.0.1:8000/portal`.
+
+## Customer Portal
+
 The user can fill onboarding fields and chat directly from the web page.
 The portal also includes a Share Links panel with one-click copy.
 
 On Render, the Share Links panel now only shows the public `*.onrender.com` portal URL.
 
-Then call:
+Example API call:
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/chat" \
@@ -111,7 +107,7 @@ Example onboarding submit payload:
 }
 ```
 
-Tip: keep `user_id` stable for each person (for example `anna`), and use `full_name` for the friendly greeting in responses.
+Keep `user_id` stable for each person (for example `anna`), and use `full_name` for the friendly greeting in responses.
 
 The chat endpoint can automatically use this profile context with `use_onboarding=true`.
 
@@ -193,7 +189,7 @@ If a deploy fails quickly, verify:
 - `PORTAL_INVITE_CODE` is set in Render dashboard (can be empty while testing).
 - Start command is `uvicorn chatbot.api:app --host 0.0.0.0 --port $PORT`.
 
-Steps:
+### Deployment Steps
 
 1. Push code to GitHub.
 2. In Render, click **New +** -> **Blueprint**.
