@@ -1,6 +1,18 @@
 # Diet-Training Bot
 
+[![CI](https://github.com/torbjorc-web/Diet-Trianing-bot/actions/workflows/tests.yml/badge.svg)](https://github.com/torbjorc-web/Diet-Trianing-bot/actions/workflows/tests.yml)
+
 A chatbot that generates meal and training plans based on user preferences.
+
+## Live Demo
+
+Production URL: [diet-training-bot.onrender.com](https://diet-training-bot.onrender.com/)
+
+## Chatbot Preview
+
+![Chatbot portal demo](docs/images/chatbot-demo.gif)
+
+Live portal GIF demo captured from production.
 
 ## Features
 

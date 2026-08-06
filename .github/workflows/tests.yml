@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [main, master]
+    branches: [master, main]
   pull_request:
-    branches: [main, master]
+    branches: [master, main]
 
 jobs:
   pytest:
@@ -19,10 +19,13 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff
 
       - name: Lint with ruff
-        run: ruff check .
+        run: ruff check chatbot tests
 
       - name: Run tests with coverage
-        run: pytest -q --cov=app --cov-report=term-missing
+        run: pytest -q --cov=chatbot --cov-report=term-missing
