@@ -1,9 +1,7 @@
+import sqlite3
 from dataclasses import asdict, dataclass
 from pathlib import Path
-import sqlite3
 from threading import Lock
-from typing import Dict
-
 
 ONBOARDING_QUESTIONS = [
     {
@@ -71,7 +69,7 @@ class InMemoryOnboardingStore:
     """Thread-safe in-memory onboarding profile storage."""
 
     def __init__(self) -> None:
-        self._store: Dict[str, UserOnboardingProfile] = {}
+        self._store: dict[str, UserOnboardingProfile] = {}
         self._lock = Lock()
 
     def upsert(self, profile: UserOnboardingProfile) -> None:

@@ -3,7 +3,6 @@ from collections.abc import Awaitable, Callable
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-
 PUBLIC_PATHS = {
     "/",
     "/portal",

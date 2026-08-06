@@ -11,11 +11,11 @@ from chatbot.ml.health_extractor import HealthConditionExtractor
 from chatbot.ml.intent_detection import FuzzyMatcher
 
 __all__ = [
-    "GoalClassifier",
     "DietStyleClassifier",
+    "FuzzyMatcher",
+    "GoalClassifier",
+    "HealthConditionExtractor",
     "MealPreferenceClassifier",
     "TrainingLevelClassifier",
     "TrainingSettingClassifier",
-    "FuzzyMatcher",
-    "HealthConditionExtractor",
 ]

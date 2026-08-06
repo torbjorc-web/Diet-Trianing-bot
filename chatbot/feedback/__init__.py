@@ -6,8 +6,8 @@ from chatbot.feedback.models import UserFeedback
 from chatbot.feedback.retrainer import ModelRetrainer
 
 __all__ = [
-    "UserFeedback",
+    "FeedbackAPIHandler",
     "FeedbackCollector",
     "ModelRetrainer",
-    "FeedbackAPIHandler",
+    "UserFeedback",
 ]

@@ -1,9 +1,8 @@
 """Tests for feedback collection and storage."""
 
-import pytest
 import json
-from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
+
 from chatbot.feedback.collector import FeedbackCollector
 from chatbot.feedback.models import UserFeedback
 
@@ -32,7 +31,7 @@ class TestFeedbackCollector:
         
         for i in range(5):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id=f"user_{i}",
                 prompt=f"test prompt {i}",
                 detected_goal="fat loss",
@@ -88,7 +87,7 @@ class TestFeedbackCollector:
         # Record some feedback
         for i in range(3):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id=f"user_{i}",
                 prompt="test",
                 detected_goal="fat loss",
@@ -115,7 +114,7 @@ class TestFeedbackCollector:
         # Record feedback with corrections
         for i in range(3):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id=f"user_{i}",
                 prompt="lose weight",
                 detected_goal="fat loss",
@@ -153,7 +152,7 @@ class TestFeedbackCollector:
         # Record 4 helpful, 1 not helpful
         for i in range(5):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id=f"user_{i}",
                 prompt="test",
                 detected_goal="goal",

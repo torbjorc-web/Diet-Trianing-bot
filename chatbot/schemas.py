@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -42,4 +42,4 @@ class OnboardingSubmitRequest(BaseModel):
 
 
 class BatchChatRequest(BaseModel):
-    requests: List[ChatRequest] = Field(default_factory=list)
+    requests: list[ChatRequest] = Field(default_factory=list)

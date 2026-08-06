@@ -80,7 +80,7 @@ class ModelRetrainer:
                 "examples_used": len(misclassified),
                 "message": f"Successfully retrained {classifier_type} classifier"
             }
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, OSError) as e:
             logger.error(f"Failed to retrain {classifier_type}: {e}")
             return {
                 "success": False,

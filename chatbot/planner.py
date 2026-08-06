@@ -1,7 +1,6 @@
 import logging
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 from chatbot.ml import (
     DietStyleClassifier,
@@ -48,11 +47,11 @@ class DietTrainingPlanner:
             use_ml: Whether to use ML classifiers (default True)
         """
         self.use_ml = use_ml
-        self.goal_classifier: Optional[GoalClassifier] = None
-        self.diet_style_classifier: Optional[DietStyleClassifier] = None
-        self.meal_preference_classifier: Optional[MealPreferenceClassifier] = None
-        self.training_level_classifier: Optional[TrainingLevelClassifier] = None
-        self.training_setting_classifier: Optional[TrainingSettingClassifier] = None
+        self.goal_classifier: GoalClassifier | None = None
+        self.diet_style_classifier: DietStyleClassifier | None = None
+        self.meal_preference_classifier: MealPreferenceClassifier | None = None
+        self.training_level_classifier: TrainingLevelClassifier | None = None
+        self.training_setting_classifier: TrainingSettingClassifier | None = None
         
         if use_ml:
             try:
@@ -62,7 +61,7 @@ class DietTrainingPlanner:
                 self.training_level_classifier = TrainingLevelClassifier()
                 self.training_setting_classifier = TrainingSettingClassifier()
                 logger.info("ML classifiers initialized successfully")
-            except Exception as e:
+            except (OSError, ValueError, RuntimeError) as e:
                 logger.warning(f"Failed to initialize ML classifiers: {e}. Falling back to rule-based.")
                 self.use_ml = False
 

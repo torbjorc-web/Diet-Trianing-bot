@@ -1,7 +1,5 @@
 """Tests for base ML classifier functionality."""
 
-import pytest
-from pathlib import Path
 from chatbot.ml.base_classifier import MLClassifier
 
 
@@ -89,13 +87,13 @@ class TestMLClassifier:
         texts1 = ["meow", "woof"]
         labels1 = ["cat", "dog"]
         classifier.train(texts1, labels1)
-        pred1, conf1 = classifier.predict("meow")
+        pred1, _conf1 = classifier.predict("meow")
         
         # Second round with more examples
         texts2 = texts1 + ["purr", "bark", "hiss", "growl"]
         labels2 = labels1 + ["cat", "dog", "cat", "dog"]
         classifier.train(texts2, labels2)
-        pred2, conf2 = classifier.predict("meow")
+        pred2, _conf2 = classifier.predict("meow")
         
         # Both should predict cat
         assert pred1 == "cat"

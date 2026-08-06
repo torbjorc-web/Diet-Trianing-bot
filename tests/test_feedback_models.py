@@ -1,7 +1,7 @@
 """Tests for feedback data models."""
 
-import pytest
-from datetime import datetime
+from datetime import datetime, timezone
+
 from chatbot.feedback.models import UserFeedback
 
 
@@ -21,7 +21,7 @@ class TestUserFeedback:
     def test_user_feedback_with_corrections(self):
         """Test UserFeedback with user corrections."""
         feedback = UserFeedback(
-            timestamp=datetime.now().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id="alice",
             prompt="gain muscle",
             detected_goal="fat loss",
@@ -41,7 +41,7 @@ class TestUserFeedback:
     def test_user_feedback_all_fields(self):
         """Test that all required fields can be set."""
         feedback = UserFeedback(
-            timestamp=datetime.now().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id="test_user",
             prompt="test prompt",
             detected_goal="goal",
@@ -63,7 +63,7 @@ class TestUserFeedback:
         """Test plan quality rating values."""
         for quality in range(1, 6):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id="user",
                 prompt="test",
                 detected_goal="goal",
@@ -80,7 +80,7 @@ class TestUserFeedback:
 
     def test_user_feedback_timestamp(self):
         """Test timestamp is stored correctly."""
-        now = datetime.now().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         feedback = UserFeedback(
             timestamp=now,
             user_id="user",
@@ -101,7 +101,7 @@ class TestUserFeedback:
         """Test helpful field with different values."""
         # Test True
         feedback_good = UserFeedback(
-            timestamp=datetime.now().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id="user",
             prompt="test",
             detected_goal="goal",
@@ -117,7 +117,7 @@ class TestUserFeedback:
         
         # Test False
         feedback_bad = UserFeedback(
-            timestamp=datetime.now().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id="user",
             prompt="test",
             detected_goal="goal",
@@ -138,7 +138,7 @@ class TestUserFeedback:
         """Test logic of detecting when user corrected model."""
         # Case 1: User agreed with model (user_goal is None)
         feedback_agree = UserFeedback(
-            timestamp=datetime.now().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id="alice",
             prompt="lose weight",
             detected_goal="fat loss",
@@ -158,7 +158,7 @@ class TestUserFeedback:
         
         # Case 2: User corrected the model
         feedback_correct = UserFeedback(
-            timestamp=datetime.now().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id="bob",
             prompt="lose weight",
             detected_goal="fat loss",

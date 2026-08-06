@@ -1,13 +1,13 @@
 """Shared test fixtures and configuration."""
 
-from dataclasses import dataclass
 import shutil
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import pytest
 
 from chatbot.engine import AIProviderError, ConcurrentChatbot
 from chatbot.history_store import SqliteChatHistoryStore
@@ -19,7 +19,6 @@ from chatbot.routes_chat import create_chat_router
 from chatbot.routes_onboarding import create_onboarding_router
 from chatbot.routes_portal import create_portal_router
 from chatbot.security import create_invite_code_middleware, extract_admin_code
-
 
 ADMIN_VIEW_CODE = "adm-123"
 
@@ -163,9 +162,9 @@ def sample_training_data():
 @pytest.fixture
 def sample_feedback_data():
     """Sample feedback data for testing feedback collection."""
-    from datetime import datetime
+    from datetime import datetime, timezone
     return {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "user_id": "test_user",
         "prompt": "lose weight, vegan, beginner",
         "detected_goal": "fat loss",

@@ -1,13 +1,14 @@
 """Health condition extraction from user prompts."""
 
 import re
+from typing import ClassVar
 
 
 class HealthConditionExtractor:
     """Extract and recognize health conditions from text."""
 
     # Common health keywords mapped to descriptions
-    HEALTH_KEYWORDS = {
+    HEALTH_KEYWORDS: ClassVar[dict[str, str]] = {
         "knee": "knee pain/issues",
         "back pain": "back pain",
         "lower back": "lower back pain",

@@ -37,7 +37,7 @@ class FeedbackCollector:
             self._append_to_csv(feedback)
 
             logger.info(f"Recorded feedback for user {feedback.user_id}")
-        except Exception as e:
+        except (OSError, TypeError, ValueError) as e:
             logger.error(f"Failed to record feedback: {e}")
 
     def _append_to_csv(self, feedback: UserFeedback) -> None:
@@ -66,7 +66,7 @@ class FeedbackCollector:
             with open(self.feedback_file, "r", encoding="utf-8") as f:
                 for line in f:
                     feedbacks.append(json.loads(line))
-        except Exception as e:
+        except (OSError, json.JSONDecodeError, TypeError) as e:
             logger.error(f"Failed to read feedback file: {e}")
             return {}
 
@@ -125,7 +125,7 @@ class FeedbackCollector:
                             "predicted": feedback.get("detected_training_level"),
                             "actual": feedback.get("user_training_level"),
                         })
-        except Exception as e:
+        except (OSError, json.JSONDecodeError, TypeError) as e:
             logger.error(f"Failed to extract misclassified examples: {e}")
 
         return misclassified

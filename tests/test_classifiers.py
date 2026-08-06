@@ -1,9 +1,8 @@
 """Tests for specialized ML classifiers."""
 
-import pytest
 from chatbot.ml.classifiers import (
-    GoalClassifier,
     DietStyleClassifier,
+    GoalClassifier,
     MealPreferenceClassifier,
     TrainingLevelClassifier,
     TrainingSettingClassifier,
@@ -98,7 +97,7 @@ class TestMealPreferenceClassifier:
         """Test when no specific meal preference."""
         clf = MealPreferenceClassifier()
         
-        pred, conf = clf.predict("I eat anything, no restrictions")
+        pred, _conf = clf.predict("I eat anything, no restrictions")
         # Should be "none" or one of the choices
         assert pred in clf.classes
 

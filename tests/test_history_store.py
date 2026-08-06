@@ -1,6 +1,10 @@
 import pytest
 
-from chatbot.history_store import ChatTurn, InMemoryChatHistoryStore, SqliteChatHistoryStore
+from chatbot.history_store import (
+    ChatTurn,
+    InMemoryChatHistoryStore,
+    SqliteChatHistoryStore,
+)
 
 
 @pytest.fixture(params=["memory", "sqlite"])

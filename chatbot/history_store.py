@@ -1,8 +1,7 @@
+import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-import sqlite3
 from threading import Lock
-from typing import Dict, List
 
 
 @dataclass
@@ -16,7 +15,7 @@ class InMemoryChatHistoryStore:
     """Thread-safe in-memory store for per-user chat history."""
 
     def __init__(self) -> None:
-        self._store: Dict[str, List[ChatTurn]] = {}
+        self._store: dict[str, list[ChatTurn]] = {}
         self._lock = Lock()
 
     def append(self, user_id: str, turn: ChatTurn) -> None:
@@ -25,12 +24,12 @@ class InMemoryChatHistoryStore:
                 self._store[user_id] = []
             self._store[user_id].append(turn)
 
-    def get_recent(self, user_id: str, limit: int) -> List[ChatTurn]:
+    def get_recent(self, user_id: str, limit: int) -> list[ChatTurn]:
         with self._lock:
             turns = self._store.get(user_id, [])
             return list(turns[-limit:])
 
-    def get_all(self, user_id: str) -> List[ChatTurn]:
+    def get_all(self, user_id: str) -> list[ChatTurn]:
         with self._lock:
             return list(self._store.get(user_id, []))
 
@@ -71,7 +70,7 @@ class SqliteChatHistoryStore:
             )
             self._conn.commit()
 
-    def get_recent(self, user_id: str, limit: int) -> List[ChatTurn]:
+    def get_recent(self, user_id: str, limit: int) -> list[ChatTurn]:
         with self._lock:
             rows = self._conn.execute(
                 """
@@ -89,7 +88,7 @@ class SqliteChatHistoryStore:
             for row in rows
         ]
 
-    def get_all(self, user_id: str) -> List[ChatTurn]:
+    def get_all(self, user_id: str) -> list[ChatTurn]:
         with self._lock:
             rows = self._conn.execute(
                 """
@@ -116,14 +115,14 @@ class SqliteChatHistoryStore:
             self._conn.commit()
         return cleared
 
-    def list_user_ids(self) -> List[str]:
+    def list_user_ids(self) -> list[str]:
         with self._lock:
             rows = self._conn.execute(
                 "SELECT DISTINCT user_id FROM chat_history ORDER BY user_id ASC"
             ).fetchall()
         return [str(row[0]) for row in rows]
 
-    def list_recent_records(self, limit: int = 200) -> List[dict]:
+    def list_recent_records(self, limit: int = 200) -> list[dict]:
         safe_limit = max(1, min(1000, int(limit)))
         with self._lock:
             rows = self._conn.execute(

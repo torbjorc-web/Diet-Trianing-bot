@@ -3,7 +3,6 @@
 import logging
 import pickle
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -41,7 +40,7 @@ class MLClassifier:
             else:
                 self._create_default_model()
                 logger.info(f"Created new {self.model_name} model")
-        except Exception as e:
+        except (OSError, pickle.PickleError, EOFError, AttributeError, ValueError) as e:
             logger.warning(f"Failed to load {self.model_name} model: {e}. Creating new.")
             self._create_default_model()
 

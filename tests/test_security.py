@@ -9,7 +9,6 @@ from chatbot.security import (
     is_public_path,
 )
 
-
 INVITE_CODE = "inv-123"
 
 

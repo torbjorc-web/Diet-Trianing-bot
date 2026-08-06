@@ -1,10 +1,10 @@
 """Tests for automatic model retraining from feedback."""
 
-import pytest
-from datetime import datetime
-from unittest.mock import Mock, patch, MagicMock
-from chatbot.feedback.retrainer import ModelRetrainer
+from datetime import datetime, timezone
+from unittest.mock import Mock
+
 from chatbot.feedback.models import UserFeedback
+from chatbot.feedback.retrainer import ModelRetrainer
 
 
 class TestModelRetrainer:
@@ -28,7 +28,7 @@ class TestModelRetrainer:
         # Record feedback with NO corrections
         for i in range(5):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id=f"user_{i}",
                 prompt="lose weight",
                 detected_goal="fat loss",
@@ -60,7 +60,7 @@ class TestModelRetrainer:
         # Record feedback with corrections
         for i in range(12):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id=f"user_{i}",
                 prompt="test prompt",
                 detected_goal="fat loss",
@@ -90,7 +90,7 @@ class TestModelRetrainer:
         # Only record 2 misclassifications
         for i in range(2):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id=f"user_{i}",
                 prompt="test",
                 detected_goal="fat loss",
@@ -123,7 +123,7 @@ class TestModelRetrainer:
         
         for i in range(correct_count):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id=f"correct_{i}",
                 prompt="test",
                 detected_goal="fat loss",
@@ -140,7 +140,7 @@ class TestModelRetrainer:
         
         for i in range(incorrect_count):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id=f"incorrect_{i}",
                 prompt="test",
                 detected_goal="fat loss",
@@ -172,7 +172,7 @@ class TestModelRetrainer:
         # Record feedback with errors in multiple classifiers
         for i in range(15):
             feedback = UserFeedback(
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 user_id=f"user_{i}",
                 prompt="test",
                 detected_goal="fat loss",

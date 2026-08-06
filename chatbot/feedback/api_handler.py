@@ -1,7 +1,6 @@
 """API handlers for feedback submission and retrieval."""
 
-from datetime import datetime
-from typing import Optional
+from datetime import datetime, timezone
 
 from chatbot.feedback.collector import FeedbackCollector
 from chatbot.feedback.models import UserFeedback
@@ -26,11 +25,11 @@ class FeedbackAPIHandler:
         user_id: str,
         prompt: str,
         detected_goal: str,
-        user_goal: Optional[str],
+        user_goal: str | None,
         detected_diet_style: str,
-        user_diet_style: Optional[str],
+        user_diet_style: str | None,
         detected_training_level: str,
-        user_training_level: Optional[str],
+        user_training_level: str | None,
         plan_quality: int,
         specific_feedback: str,
         helpful: bool,
@@ -54,7 +53,7 @@ class FeedbackAPIHandler:
             Dictionary with feedback submission result
         """
         feedback = UserFeedback(
-            timestamp=datetime.now().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             user_id=user_id,
             prompt=prompt,
             detected_goal=detected_goal,

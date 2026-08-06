@@ -1,6 +1,5 @@
 """Integration tests for planner with ML components."""
 
-import pytest
 from chatbot.planner import DietTrainingPlanner, UserPreferences
 
 

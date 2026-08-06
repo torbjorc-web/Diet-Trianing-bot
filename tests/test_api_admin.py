@@ -5,7 +5,6 @@ import pytest
 
 from tests.conftest import ADMIN_VIEW_CODE, onboarding_payload
 
-
 ADMIN_HEADERS = {"x-admin-code": ADMIN_VIEW_CODE}
 
 ADMIN_PATHS = ["/admin/users", "/admin/chat-inputs", "/admin/chat-inputs.csv"]

@@ -1,11 +1,9 @@
 from dataclasses import asdict
-from typing import List
 
 from fastapi import APIRouter
 
 from chatbot.history_store import ChatTurn
 from chatbot.schemas import BatchChatRequest, ChatRequest
-
 
 CHAT_OPENAPI_EXTRA = {
     "requestBody": {
@@ -49,11 +47,11 @@ CHAT_OPENAPI_EXTRA = {
 }
 
 
-def _build_contextual_prompt(turns: List[ChatTurn], prompt: str) -> str:
+def _build_contextual_prompt(turns: list[ChatTurn], prompt: str) -> str:
     if not turns:
         return prompt
 
-    lines: List[str] = [
+    lines: list[str] = [
         "Recent conversation context:",
     ]
 

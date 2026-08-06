@@ -1,6 +1,5 @@
 """Tests for fuzzy intent detection."""
 
-import pytest
 from chatbot.ml.intent_detection import FuzzyMatcher
 
 

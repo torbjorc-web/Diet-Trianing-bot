@@ -1,6 +1,5 @@
 """Tests for health condition extraction."""
 
-import pytest
 from chatbot.ml.health_extractor import HealthConditionExtractor
 
 

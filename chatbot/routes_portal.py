@@ -20,7 +20,7 @@ def _get_portal_share_urls(request: Request) -> list[str]:
         host_name = socket.gethostname()
         for info in socket.getaddrinfo(host_name, None, socket.AF_INET):
             ip = info[4][0]
-            if ip.startswith("127.") or ip.startswith("169.254."):
+            if ip.startswith(("127.", "169.254.")):
                 continue
             candidates.add(ip)
     except OSError:

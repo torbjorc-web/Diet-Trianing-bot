@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 def filter_records_by_window(records: list[dict], window: str) -> list[dict]:
@@ -8,9 +8,9 @@ def filter_records_by_window(records: list[dict], window: str) -> list[dict]:
     if normalized == "all":
         return records
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     if normalized == "today":
-        cutoff = datetime(now.year, now.month, now.day)
+        cutoff = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
     elif normalized == "30d":
         cutoff = now - timedelta(days=30)
     else:
@@ -22,7 +22,9 @@ def filter_records_by_window(records: list[dict], window: str) -> list[dict]:
         if not created_at:
             continue
         try:
-            timestamp = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+            timestamp = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=timezone.utc
+            )
         except ValueError:
             continue
         if timestamp >= cutoff:

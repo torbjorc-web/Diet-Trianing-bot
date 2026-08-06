@@ -3,7 +3,6 @@ import logging
 import random
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 from chatbot.planner import DietTrainingPlanner
 
@@ -78,7 +77,7 @@ class ConcurrentChatbot:
         if not prompt or not prompt.strip():
             raise ValidationError("prompt cannot be empty")
 
-    def _ask_provider_with_retry(self, user_id: str, prompt: str) -> Tuple[str, int]:
+    def _ask_provider_with_retry(self, user_id: str, prompt: str) -> tuple[str, int]:
         attempts = 0
         for attempt in range(1, self.retries + 2):
             attempts = attempt
@@ -97,7 +96,7 @@ class ConcurrentChatbot:
 
     def _ask_provider_with_retry_and_timeout(
         self, user_id: str, prompt: str
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             future = pool.submit(self._ask_provider_with_retry, user_id, prompt)
             try:
@@ -172,8 +171,8 @@ class ConcurrentChatbot:
                 error=f"Unexpected: {exc}",
             )
 
-    def process_batch(self, requests: List[Tuple[str, str]]) -> Dict[str, ChatResult]:
-        results: Dict[str, ChatResult] = {}
+    def process_batch(self, requests: list[tuple[str, str]]) -> dict[str, ChatResult]:
+        results: dict[str, ChatResult] = {}
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as pool:
             future_map = {

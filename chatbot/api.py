@@ -6,14 +6,13 @@ from fastapi import FastAPI
 from chatbot.engine import ConcurrentChatbot, MockAIProvider
 from chatbot.history_store import SqliteChatHistoryStore
 from chatbot.logger_config import configure_logging
-from chatbot.portal_template import get_portal_html
 from chatbot.onboarding import SqliteOnboardingStore
+from chatbot.portal_template import get_portal_html
 from chatbot.routes_admin import create_admin_router
 from chatbot.routes_chat import create_chat_router
 from chatbot.routes_onboarding import create_onboarding_router
 from chatbot.routes_portal import create_portal_router
 from chatbot.security import create_invite_code_middleware, extract_admin_code
-
 
 app = FastAPI(title="Diet-Training Bot API", version="1.0.0")
 

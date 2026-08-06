@@ -6,10 +6,10 @@ from chatbot.ml.base_classifier import MLClassifier
 class GoalClassifier(MLClassifier):
     """Classify fitness goal from user input."""
 
-    CLASSES = ["fat loss", "muscle gain", "maintenance", "general fitness"]
+    CLASSES = ("fat loss", "muscle gain", "maintenance", "general fitness")
 
     def __init__(self):
-        super().__init__("goal", self.CLASSES)
+        super().__init__("goal", list(self.CLASSES))
         self._train_default()
 
     def _train_default(self) -> None:
@@ -41,10 +41,10 @@ class GoalClassifier(MLClassifier):
 class DietStyleClassifier(MLClassifier):
     """Classify diet style preference."""
 
-    CLASSES = ["balanced", "vegetarian", "vegan", "low-carb", "high-protein"]
+    CLASSES = ("balanced", "vegetarian", "vegan", "low-carb", "high-protein")
 
     def __init__(self):
-        super().__init__("diet_style", self.CLASSES)
+        super().__init__("diet_style", list(self.CLASSES))
         self._train_default()
 
     def _train_default(self) -> None:
@@ -72,10 +72,10 @@ class DietStyleClassifier(MLClassifier):
 class MealPreferenceClassifier(MLClassifier):
     """Classify meal preference/dietary restrictions."""
 
-    CLASSES = ["none", "halal", "kosher", "vegan", "vegetarian"]
+    CLASSES = ("none", "halal", "kosher", "vegan", "vegetarian")
 
     def __init__(self):
-        super().__init__("meal_preference", self.CLASSES)
+        super().__init__("meal_preference", list(self.CLASSES))
         self._train_default()
 
     def _train_default(self) -> None:
@@ -102,10 +102,10 @@ class MealPreferenceClassifier(MLClassifier):
 class TrainingLevelClassifier(MLClassifier):
     """Classify training experience level."""
 
-    CLASSES = ["beginner", "intermediate", "advanced"]
+    CLASSES = ("beginner", "intermediate", "advanced")
 
     def __init__(self):
-        super().__init__("training_level", self.CLASSES)
+        super().__init__("training_level", list(self.CLASSES))
         self._train_default()
 
     def _train_default(self) -> None:
@@ -133,10 +133,10 @@ class TrainingLevelClassifier(MLClassifier):
 class TrainingSettingClassifier(MLClassifier):
     """Classify training environment/setting."""
 
-    CLASSES = ["self", "studio", "group"]
+    CLASSES = ("self", "studio", "group")
 
     def __init__(self):
-        super().__init__("training_setting", self.CLASSES)
+        super().__init__("training_setting", list(self.CLASSES))
         self._train_default()
 
     def _train_default(self) -> None:
